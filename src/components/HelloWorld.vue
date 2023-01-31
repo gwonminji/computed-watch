@@ -1,58 +1,103 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+  <div>
+    <h1>watch</h1>
+    <span> {{ cnt1 }}</span>
+    <button type="button" @click="updateCnt1">cnt1 ++</button>
+
+    <h1>computed</h1>
+    <p>age : {{ age }}</p>
+    <button type="button" @click="age--">age -</button>
+    <button type="button" @click="age++">age +</button>
+    <p>age > 17 ? {{ can }}</p>
+
+    <h1>watch 와 computed 비교</h1>
+    <label for="">기본 숫자 : <input type="number" v-model.number.lazy="num"></label>
+    <p>제곱 computed : {{ squareC }}, 제곱 watch : {{ squareW }}</p>
+    
   </div>
 </template>
 
 <script>
+import { ref, watch, computed } from 'vue'
 export default {
   name: 'HelloWorld',
-  props: {
-    msg: String
+  setup(){
+    /** watch */
+    const cnt1 = ref(0);
+
+    const updateCnt1 = () => {
+      cnt1.value++
+    }
+
+    /**
+     * 지정한 변수값의 변화 감시. 값이 변경되기 이전 값 참조 가능
+     */
+    watch(
+      cnt1,
+      (cur, prev) => {
+        console.log('composition API Watch : ' + prev + '==>' + cur);
+      },
+      {
+        immediate: true, //이 옵션을 true로 설정해주면 변수의 처음 값도 볼 수 있음
+      }
+    )
+
+
+    /** computed */
+    const age = ref(17);
+
+    /** 
+     * vue가 가지는 함수형 속성.
+     * computed의 파라미터는 로직을 가지고 값을 계산한 후 리턴하는 함수
+     * 연결되는 data가 변경되면 자동으로 새로운 값을 계산하고 화면에 반영
+    */
+    const can = computed(() => {
+      return age.value >= 18 ? 'yes' : 'no';
+    })
+
+
+    /** computed와 watch 비교 : https://goodteacher.tistory.com/542  https://hyeonyeee.tistory.com/80
+     *  computed : 리턴값 o, 동기 처리, 한 번 렌더링 됐을 때 update되면 될 때
+     *  watch : 리턴값 x, 비동기 처리, 프로퍼티 변경시점에 action이 필요할 때(api call, router), 데이터의 실시간/빈번한 update가 필요할 때
+    */
+
+    const num = ref(4);
+
+    const squareC = computed(() => {
+      return num.value * num.value; //리턴된 값 사용. 템플릿에도 squareC가 사용됨
+    })
+
+    const squareW = ref(0); //단순한 ref
+
+    watch(
+      num, //첫 번째 파라미터 : 감시대상
+      (cur, prev) => { // 두 번째 파라미터 : 감시 대상 변경시 동작할 callback으로 새로운 값(cur)과 기존 값(prev)이 파라미터로 전달됨
+        console.log(`num 변경 ${prev} ==> ${cur}`);
+        squareW.value = cur * cur; //callback 내부에서는 cur를 이용해서 squareW를 변경하고 있음
+      },
+      {
+        immediate: true,
+      }
+    )
+
+    return{
+      cnt1,
+      updateCnt1, 
+      age, 
+      can,
+      num,
+      squareC,
+      squareW
+    }
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h3 {
-  margin: 40px 0 0;
+h1{
+  font-size: 16px;
 }
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
+.is-error{
+  background: #ff0000;
+  color: #000;
 }
 </style>
